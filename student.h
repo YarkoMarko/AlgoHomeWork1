@@ -20,15 +20,15 @@ private:
     float m_rating;
     std::string m_phone_number;
 public:
-    std::string get_name();
-    std::string get_surname();
-    std::string get_email();
-    int get_birth_year();
-    int get_birth_month();
-    int get_birth_day();
-    std::string get_group();
-    float get_rating();
-    std::string get_phone_number();
+    std::string get_name() const;
+    std::string get_surname() const;
+    std::string get_email() const;
+    int get_birth_year() const;
+    int get_birth_month() const;
+    int get_birth_day() const;
+    std::string get_group() const;
+    float get_rating() const;
+    std::string get_phone_number() const;
 
     void set_name(std::string name);
     void set_surname(std::string surname);

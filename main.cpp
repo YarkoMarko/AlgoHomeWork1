@@ -83,7 +83,7 @@ void top_hundred(std::vector<Student>& vec) {
     mergeSortVector(vec, 0, size_ - 1);
 
     for (int i = 0; i < 100; i++) {
-        std::cout << vec[i].get_name() << " " << vec[i].get_surname() << ": "<< vec[i].get_rating() << std::endl;
+        std::cout << vec[i].get_email() << ": "<< vec[i].get_rating() << std::endl;
     }
 
 }
@@ -103,14 +103,14 @@ void changeRatingByEmail(std::vector<Student>& vec, std::string email) {
 
     for (int i = 0; i < size_; i++) {
         if (vec[i].get_email() == email) {
-            std::cout << vec[i].get_name() << " " << vec[i].get_surname() << ", " << vec[i].get_email() << ": "<< vec[i].get_rating() << std::endl;
+            std::cout << vec[i].get_email() << ": "<< vec[i].get_rating() << std::endl;
 
             float newRating;
             std::cout << "Enter new value of rating: ";
             std::cin >> newRating;
             vec[i].set_rating(newRating);
 
-            std::cout << vec[i].get_name() << " " << vec[i].get_surname() << ", " << vec[i].get_email() << ": "<< vec[i].get_rating() << std::endl;
+            std::cout << vec[i].get_email() << ": "<< vec[i].get_rating() << std::endl;
 
             return;
         }
@@ -467,6 +467,32 @@ void measure_memory_usage(std::string filename) {
     memcsv.close();
 }
 
+void save_students_to_csv(const std::vector<Student>& students, const std::string& filename) {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file for writing: " << filename << std::endl;
+        return;
+    }
+
+
+    file << "m_name;m_surname;m_email;m_birth_year;m_birth_month;m_birth_day;"
+            "m_group;m_rating;m_phone_number\n";
+
+    for (const Student& s : students) {
+        file << s.get_name() << ";"
+             << s.get_surname() << ";"
+             << s.get_email() << ";"
+             << s.get_birth_year() << ";"
+             << s.get_birth_month() << ";"
+             << s.get_birth_day() << ";"
+             << s.get_group() << ";"
+             << s.get_rating() << ";"
+             << s.get_phone_number() << "\n";
+    }
+
+    file.close();
+    std::cout << "Saved " << students.size() << " students to " << filename << std::endl;
+}
 
 int main() {
     std::vector<int> sizes = {100, 1000, 10000, 100000};
@@ -517,5 +543,8 @@ int main() {
 
     sortByPhone_std(vec_s7_std);
     radixSortPhones(vec_s7_custom);
+
+    save_students_to_csv(vec_s7_std, "C:/Users/yarem/CLionProjects/AlgoHomeWork/sorted_std.csv");
+    save_students_to_csv(vec_s7_custom, "C:/Users/yarem/CLionProjects/AlgoHomeWork/sorted_custom.csv");
     return 0;
 }

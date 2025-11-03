@@ -4,39 +4,39 @@
 
 #include "student.h"
 
-std::string Student::get_name() {
+std::string Student::get_name() const {
     return this->m_name;
 }
 
-std::string Student::get_surname() {
+std::string Student::get_surname() const {
     return this->m_surname;
 }
 
-std::string Student::get_email() {
+std::string Student::get_email() const {
     return this->m_email;
 }
 
-int Student::get_birth_year() {
+int Student::get_birth_year() const {
     return this->m_birth_year;
 }
 
-int Student::get_birth_month() {
+int Student::get_birth_month() const {
     return this->m_birth_month;
 }
 
-int Student::get_birth_day() {
+int Student::get_birth_day() const {
     return this->m_birth_day;
 }
 
-std::string Student::get_group() {
+std::string Student::get_group() const {
     return this->m_group;
 }
 
-float Student::get_rating() {
+float Student::get_rating() const {
     return this->m_rating;
 }
 
-std::string Student::get_phone_number() {
+std::string Student::get_phone_number() const {
     return this->m_phone_number;
 }
 
