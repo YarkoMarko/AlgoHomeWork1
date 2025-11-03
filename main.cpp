@@ -10,6 +10,14 @@
 #include <chrono>
 #include "BST.h"
 #include <random>
+#include <windows.h>
+#include <psapi.h>
+
+size_t getCurrentMemoryUsage() {
+    PROCESS_MEMORY_COUNTERS_EX pmc;
+    GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
+    return pmc.WorkingSetSize; // у байтах
+}
 
 struct Result {
     std::string structure;
@@ -392,12 +400,82 @@ void radixSortPhones(std::vector<Student>& students) {
               << " s\n";
 }
 
+void measure_memory_usage(std::string filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file\n";
+        return;
+    }
+
+    std::string header;
+    std::getline(file, header);
+
+    std::vector<Student> students_all;
+    std::string line;
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string token;
+        std::vector<std::string> tokens;
+        while (std::getline(ss, token, ';')) tokens.push_back(token);
+
+        Student s;
+        s.set_name(tokens[0]);
+        s.set_surname(tokens[1]);
+        s.set_email(tokens[2]);
+        s.set_birth_year(std::stoi(tokens[3]));
+        s.set_birth_month(std::stoi(tokens[4]));
+        s.set_birth_day(std::stoi(tokens[5]));
+        s.set_group(tokens[6]);
+        s.set_rating(std::stof(tokens[7]));
+        s.set_phone_number(tokens[8]);
+
+        students_all.push_back(s);
+    }
+
+    file.close();
+
+    std::ofstream memcsv("C:/Users/yarem/CLionProjects/AlgoHomeWork/memory_usage.csv");
+    memcsv << "structure,size,memory_bytes\n";
+
+    std::vector<int> sizes = {100, 1000, 10000, 100000};
+
+    for (int size : sizes) {
+        if (students_all.size() < size) break;
+
+        std::vector<Student> subset(students_all.begin(), students_all.begin() + size);
+
+        size_t mem_before = getCurrentMemoryUsage();
+        std::vector<Student> vec = subset;
+        size_t mem_after = getCurrentMemoryUsage();
+        memcsv << "Vector," << size << "," << (mem_after - mem_before) << "\n";
+
+        mem_before = getCurrentMemoryUsage();
+        std::unordered_map<std::string, Student> map;
+        for (auto& s : subset)
+            map[s.get_email()] = s;
+        mem_after = getCurrentMemoryUsage();
+        memcsv << "Hash table," << size << "," << (mem_after - mem_before) << "\n";
+
+        mem_before = getCurrentMemoryUsage();
+        StudentBST bst;
+        for (auto& s : subset)
+            bst.insert(s);
+        mem_after = getCurrentMemoryUsage();
+        memcsv << "TreeMap," << size << "," << (mem_after - mem_before) << "\n";
+    }
+
+    memcsv.close();
+}
+
+
 int main() {
     std::vector<int> sizes = {100, 1000, 10000, 100000};
     std::vector<Result> results;
 
-    // Завантажуємо всіх студентів один раз
     std::vector<Student> all_students = load_students("C:/Users/yarem/CLionProjects/AlgoHomeWork/students.csv");
+    std::vector<Student> vec_s7_std = load_students("C:/Users/yarem/CLionProjects/AlgoHomeWork/students.csv");
+    std::vector<Student> vec_s7_custom = load_students("C:/Users/yarem/CLionProjects/AlgoHomeWork/students.csv");
+
     std::cout << "Total loaded: " << all_students.size() << std::endl;
 
     for (int N : sizes) {
@@ -407,21 +485,17 @@ int main() {
             break;
         }
 
-        // Вибираємо перші N студентів
         std::vector<Student> part(all_students.begin(), all_students.begin() + N);
 
-        // VECTOR
         auto res_vec = run_experiment_deficit(part, 10, 10, 20);
         results.push_back(res_vec);
 
-        // HASH TABLE
         std::unordered_map<std::string, Student> map_part;
         for (int i = 0; i < N; i++)
             map_part[part[i].get_email()] = part[i];
         auto res_map = run_experiment_deficit_map(map_part, 10, 10, 20);
         results.push_back(res_map);
 
-        // BST
         StudentBST bst_part;
         std::shuffle(part.begin(), part.end(), std::mt19937(std::random_device{}()));
         for (auto& s : part) {
@@ -431,7 +505,8 @@ int main() {
         results.push_back(res_bst);
     }
 
-    // === Збереження результатів у .csv для Python ===
+    measure_memory_usage("C:/Users/yarem/CLionProjects/Algos_homework/students.csv");
+
     std::ofstream out("C:/Users/yarem/CLionProjects/AlgoHomeWork/experiment_results.csv");
     out << "structure,size,total_ops\n";
     for (auto& r : results)
@@ -439,5 +514,8 @@ int main() {
     out.close();
 
     std::cout << "\nРезультати збережено у 'experiment_results.csv'\n";
+
+    sortByPhone_std(vec_s7_std);
+    radixSortPhones(vec_s7_custom);
     return 0;
 }
