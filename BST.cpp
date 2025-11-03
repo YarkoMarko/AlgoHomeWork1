@@ -180,3 +180,13 @@ void StudentBST::findBiggestAverageRating_() {
 void StudentBST::findBiggestAverageRating() {
     findBiggestAverageRating_();
 }
+
+int StudentBST::countNodes(Node *node) {
+    if (node == nullptr) return 0;
+    return 1 + countNodes(node->left) + countNodes(node->right);
+}
+
+int StudentBST::size() {
+    return countNodes(this->root);
+}
+

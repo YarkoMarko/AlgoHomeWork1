@@ -20,6 +20,7 @@ private:
     Node* findEmail(Node* node, std::string email);
     void findBiggestAverageRating_();
     void getInfo(Node* node, std::unordered_map<std::string, float>& rating, std::unordered_map<std::string, float>& group);
+    int countNodes(Node* node);
 public:
     StudentBST();
 
@@ -27,6 +28,7 @@ public:
     void top_hundred();
     void changeRatingByEmail(std::string email);
     void findBiggestAverageRating();
+    int size();
 };
 
 #endif //ALGOS_HOMEWORK_BST_H

@@ -9,60 +9,13 @@
 #include <algorithm>
 #include <chrono>
 #include "BST.h"
+#include <random>
 
 struct Result {
     std::string structure;
     int size;
     long long total_ops;
 };
-
-void vector_realisation() {
-    std::vector<Student> students;
-    std::fstream file;
-
-    file.open("C:/Users/yarem/CLionProjects/Algos_homework/students.csv", std::ios::in);
-
-    if (!file.is_open()) {
-        std::cerr << "Error opening file" << std::endl;
-        return;
-    }
-
-    file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    std::string field;
-
-
-
-    while (std::getline(file, field)) {
-        std::stringstream ss(field);
-        std::string line;
-        std::vector<std::string> tokens;
-
-        while (std::getline(ss, line, ';')) {
-            tokens.push_back(line);
-        }
-
-        Student student;
-        student.set_name(tokens[0]);
-        student.set_surname(tokens[1]);
-        student.set_email(tokens[2]);
-        student.set_birth_year(std::stoi(tokens[3]));
-        student.set_birth_month(std::stoi(tokens[4]));
-        student.set_birth_day(std::stoi(tokens[5]));
-        student.set_group(tokens[6]);
-        student.set_rating(std::stof(tokens[7]));
-        student.set_phone_number(tokens[8]);
-
-        students.push_back(student);
-    }
-
-    std::cout << students.size() << std::endl;
-
-    std::cout << students[0].get_name() << std::endl;
-
-    file.close();
-}
-
-
 
 void merge(std::vector<Student>& vec, int left, int mid, int right) {
     int size_for_left = mid - left + 1;
@@ -232,7 +185,7 @@ std::vector<Student> load_students(const std::string &filename) {
         std::stringstream ss(field);
         std::string line;
         std::vector<std::string> tokens;
-        while (std::getline(ss, line, ';'))
+        while (std::getline(ss, line, ','))
             tokens.push_back(line);
         if (tokens.size() < 9) continue;
 
@@ -253,7 +206,7 @@ std::vector<Student> load_students(const std::string &filename) {
     return students;
 }
 
-void run_experiment_deficit(std::vector<Student>& students, int A, int B, int C, int duration_seconds = 10) {
+Result run_experiment_deficit(std::vector<Student>& students, int A, int B, int C, int duration_seconds = 10) {
     using namespace std::chrono;
     const int totalW = A + B + C;
     const double p1 = double(A) / totalW;
@@ -290,13 +243,11 @@ void run_experiment_deficit(std::vector<Student>& students, int A, int B, int C,
         total_cnt++;
     }
 
-    std::cout << "Op1: " << cnt1 << "\n";
-    std::cout << "Op2: " << cnt2 << "\n";
-    std::cout << "Op3: " << cnt3 << "\n";
-    std::cout << "Total: " << total_cnt << "\n";
+    std::cout << "[Vector] Op1=" << cnt1 << " Op2=" << cnt2 << " Op3=" << cnt3 << " Total=" << total_cnt << "\n";
+    return {"Vector", (int)students.size(), total_cnt};
 }
 
-void run_experiment_deficit_map(std::unordered_map<std::string, Student> students, int A, int B, int C, int duration_seconds = 10) {
+Result run_experiment_deficit_map(std::unordered_map<std::string, Student> students, int A, int B, int C, int duration_seconds = 10) {
     using namespace std::chrono;
     const int totalW = A + B + C;
     const double p1 = double(A) / totalW;
@@ -333,13 +284,11 @@ void run_experiment_deficit_map(std::unordered_map<std::string, Student> student
         total_cnt++;
     }
 
-    std::cout << "Op1: " << cnt1 << "\n";
-    std::cout << "Op2: " << cnt2 << "\n";
-    std::cout << "Op3: " << cnt3 << "\n";
-    std::cout << "Total: " << total_cnt << "\n";
+    std::cout << "[Map] Op1=" << cnt1 << " Op2=" << cnt2 << " Op3=" << cnt3 << " Total=" << total_cnt << "\n";
+    return {"Hash table", (int)students.size(), total_cnt};
 }
 
-void run_experiment_deficit_bst(StudentBST student_bst, int A, int B, int C, int duration_seconds = 10) {
+Result run_experiment_deficit_bst(StudentBST student_bst, int A, int B, int C, int duration_seconds = 10) {
     using namespace std::chrono;
     const int totalW = A + B + C;
     const double p1 = double(A) / totalW;
@@ -376,10 +325,8 @@ void run_experiment_deficit_bst(StudentBST student_bst, int A, int B, int C, int
         total_cnt++;
     }
 
-    std::cout << "Op1: " << cnt1 << "\n";
-    std::cout << "Op2: " << cnt2 << "\n";
-    std::cout << "Op3: " << cnt3 << "\n";
-    std::cout << "Total: " << total_cnt << "\n";
+    std::cout << "[BST] Op1=" << cnt1 << " Op2=" << cnt2 << " Op3=" << cnt3 << " Total=" << total_cnt << "\n";
+    return {"TreeMap", student_bst.size(), total_cnt};
 }
 
 void sortByPhone_std(std::vector<Student>& students) {
@@ -446,211 +393,51 @@ void radixSortPhones(std::vector<Student>& students) {
 }
 
 int main() {
+    std::vector<int> sizes = {100, 1000, 10000, 100000};
+    std::vector<Result> results;
 
-    std::vector<Student> students;
-    std::vector<Student> vec_s_std;
-    std::vector<Student> vec_s_custom;
-    std::unordered_map<std::string, Student> students_map;
-    StudentBST student_bst;
+    // Завантажуємо всіх студентів один раз
+    std::vector<Student> all_students = load_students("C:/Users/yarem/CLionProjects/AlgoHomeWork/students.csv");
+    std::cout << "Total loaded: " << all_students.size() << std::endl;
 
-    std::fstream file;
-
-    file.open("C:/Users/yarem/CLionProjects/Algos_homework/students.csv", std::ios::in);
-
-    if (!file.is_open()) {
-        std::cerr << "Error opening file" << std::endl;
-        return -1;
-    }
-
-    file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    std::string field;
-
-
-
-    while (std::getline(file, field)) {
-        std::stringstream ss(field);
-        std::string line;
-        std::vector<std::string> tokens;
-
-        while (std::getline(ss, line, ';')) {
-            tokens.push_back(line);
+    for (int N : sizes) {
+        std::cout << "\n===== Running experiment for N = " << N << " =====\n";
+        if (N > (int)all_students.size()) {
+            std::cerr << "Dataset too small for " << N << " students!\n";
+            break;
         }
 
-        Student student;
-        student.set_name(tokens[0]);
-        student.set_surname(tokens[1]);
-        student.set_email(tokens[2]);
-        student.set_birth_year(std::stoi(tokens[3]));
-        student.set_birth_month(std::stoi(tokens[4]));
-        student.set_birth_day(std::stoi(tokens[5]));
-        student.set_group(tokens[6]);
-        student.set_rating(std::stof(tokens[7]));
-        student.set_phone_number(tokens[8]);
+        // Вибираємо перші N студентів
+        std::vector<Student> part(all_students.begin(), all_students.begin() + N);
 
-        students.push_back(student);
-    }
+        // VECTOR
+        auto res_vec = run_experiment_deficit(part, 10, 10, 20);
+        results.push_back(res_vec);
 
-    std::cout << students.size() << std::endl;
+        // HASH TABLE
+        std::unordered_map<std::string, Student> map_part;
+        for (int i = 0; i < N; i++)
+            map_part[part[i].get_email()] = part[i];
+        auto res_map = run_experiment_deficit_map(map_part, 10, 10, 20);
+        results.push_back(res_map);
 
-    file.close();
-
-    run_experiment_deficit(students, 10, 10, 20);
-
-    file.open("C:/Users/yarem/CLionProjects/Algos_homework/students.csv", std::ios::in);
-
-    if (!file.is_open()) {
-        std::cerr << "Error opening file" << std::endl;
-        return -1;
-    }
-
-    file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    std::string field_;
-
-    while (std::getline(file, field_)) {
-        std::stringstream ss(field_);
-        std::string line;
-        std::vector<std::string> tokens;
-
-        while (std::getline(ss, line, ';')) {
-            tokens.push_back(line);
+        // BST
+        StudentBST bst_part;
+        std::shuffle(part.begin(), part.end(), std::mt19937(std::random_device{}()));
+        for (auto& s : part) {
+            bst_part.insert(s);
         }
-
-        Student student;
-        student.set_name(tokens[0]);
-        student.set_surname(tokens[1]);
-        student.set_email(tokens[2]);
-        student.set_birth_year(std::stoi(tokens[3]));
-        student.set_birth_month(std::stoi(tokens[4]));
-        student.set_birth_day(std::stoi(tokens[5]));
-        student.set_group(tokens[6]);
-        student.set_rating(std::stof(tokens[7]));
-        student.set_phone_number(tokens[8]);
-
-        students_map[tokens[2]] = student;
+        auto res_bst = run_experiment_deficit_bst(bst_part, 10, 10, 20);
+        results.push_back(res_bst);
     }
 
-    std::cout << students_map.size() << std::endl;
+    // === Збереження результатів у .csv для Python ===
+    std::ofstream out("C:/Users/yarem/CLionProjects/AlgoHomeWork/experiment_results.csv");
+    out << "structure,size,total_ops\n";
+    for (auto& r : results)
+        out << r.structure << "," << r.size << "," << r.total_ops << "\n";
+    out.close();
 
-    file.close();
-
-    run_experiment_deficit_map(students_map, 10, 10, 20);
-
-    file.open("C:/Users/yarem/CLionProjects/Algos_homework/students.csv", std::ios::in);
-
-    if (!file.is_open()) {
-        std::cerr << "Error opening file" << std::endl;
-        return -1;
-    }
-
-    file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    std::string field_bst;
-
-    while (std::getline(file, field_bst)) {
-        std::stringstream ss(field_bst);
-        std::string line;
-        std::vector<std::string> tokens;
-
-        while (std::getline(ss, line, ';')) {
-            tokens.push_back(line);
-        }
-
-        Student student;
-        student.set_name(tokens[0]);
-        student.set_surname(tokens[1]);
-        student.set_email(tokens[2]);
-        student.set_birth_year(std::stoi(tokens[3]));
-        student.set_birth_month(std::stoi(tokens[4]));
-        student.set_birth_day(std::stoi(tokens[5]));
-        student.set_group(tokens[6]);
-        student.set_rating(std::stof(tokens[7]));
-        student.set_phone_number(tokens[8]);
-
-        student_bst.insert(student);
-    }
-
-    file.close();
-
-    run_experiment_deficit_bst(student_bst, 10, 10, 20);
-
-    file.open("C:/Users/yarem/CLionProjects/Algos_homework/students.csv", std::ios::in);
-
-    if (!file.is_open()) {
-        std::cerr << "Error opening file" << std::endl;
-        return -1;
-    }
-
-    file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    std::string field_s;
-
-
-
-    while (std::getline(file, field_s)) {
-        std::stringstream ss(field_s);
-        std::string line;
-        std::vector<std::string> tokens;
-
-        while (std::getline(ss, line, ';')) {
-            tokens.push_back(line);
-        }
-
-        Student student;
-        student.set_name(tokens[0]);
-        student.set_surname(tokens[1]);
-        student.set_email(tokens[2]);
-        student.set_birth_year(std::stoi(tokens[3]));
-        student.set_birth_month(std::stoi(tokens[4]));
-        student.set_birth_day(std::stoi(tokens[5]));
-        student.set_group(tokens[6]);
-        student.set_rating(std::stof(tokens[7]));
-        student.set_phone_number(tokens[8]);
-
-        vec_s_std.push_back(student);
-    }
-
-    std::cout << vec_s_std.size() << std::endl;
-
-    file.close();
-
-    sortByPhone_std(vec_s_std);
-
-    file.open("C:/Users/yarem/CLionProjects/Algos_homework/students.csv", std::ios::in);
-
-    if (!file.is_open()) {
-        std::cerr << "Error opening file" << std::endl;
-        return -1;
-    }
-
-    file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    std::string field_s_c;
-
-    while (std::getline(file, field_s_c)) {
-        std::stringstream ss(field_s_c);
-        std::string line;
-        std::vector<std::string> tokens;
-
-        while (std::getline(ss, line, ';')) {
-            tokens.push_back(line);
-        }
-
-        Student student;
-        student.set_name(tokens[0]);
-        student.set_surname(tokens[1]);
-        student.set_email(tokens[2]);
-        student.set_birth_year(std::stoi(tokens[3]));
-        student.set_birth_month(std::stoi(tokens[4]));
-        student.set_birth_day(std::stoi(tokens[5]));
-        student.set_group(tokens[6]);
-        student.set_rating(std::stof(tokens[7]));
-        student.set_phone_number(tokens[8]);
-
-        vec_s_custom.push_back(student);
-    }
-
-    std::cout << vec_s_custom.size() << std::endl;
-
-    file.close();
-
-    radixSortPhones(vec_s_custom);
-
+    std::cout << "\nРезультати збережено у 'experiment_results.csv'\n";
     return 0;
 }
